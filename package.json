@@ -1,0 +1,20 @@
+{
+  "name": "functionalprogramming-demo",
+  "version": "1.0.0",
+  "description": "",
+  "main": "person.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "babel": "babel src --watch -d lib",
+    "anywhere": "anywhere -p 8888"
+  },
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "babel-preset-es2015": "^6.24.1"
+  },
+  "dependencies": {
+    "babel-cli": "^6.26.0",
+    "ramda": "^0.25.0"
+  }
+}
