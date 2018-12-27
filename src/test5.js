@@ -86,23 +86,17 @@ const result5 = _.from(people)
 console.log(result5); 
 
 
-// function sum(arr) {
-//   if(_.isEmpty(arr)){
-//     return 0;
-//   }
-//   return _.first(arr) + sum(...arr);
-// }
+/**
+ * 尾调用优化
+ * @param {*} arr 数组
+ * @param {*} acc 累计值
+ */
+function sum(arr, acc = 0){
+  if(_.isEmpty(arr)){
+    return acc;
+  }
 
-// console.log(sum([]));
-// const data = [1,2,3,4,5,6,7,8,9];
-// const result6 = sum(data);
-// console.log(result6);
-
-// function sum2(arr, acc = 0){
-//   if(_.isEmpty(arr)){
-//     return 0;
-//   }
-//   return sum2(...arr, acc + _.first(arr));
-// }
-// const result7 = sum2(data);
-// console.log(result7);
+  return sum(_.tail(arr), acc + _.first(arr));
+}
+const result7 = sum([1,2,3,4,5,6,7,8,9]);
+console.log(result7); // -> 45
