@@ -1,14 +1,8 @@
 /**
  * 函数的管道化
  * 元组结构、柯里化
+ * 柯里化的替代方案：部分应用、函数绑定
  */
-
-// trim :: string -> string
-const trim = str => str.replace(/^\s*|\s*$/g, '');
-
-// normalize :: string -> string
-const normalize = str => str.replace(/\-/g, '');
-
 const result = normalize(trim('   444-44-4444  '));
 console.log(result);
 
@@ -103,3 +97,74 @@ console.log(one, two); // -> 'Barkley' 'Rosser'
 
 const result2 = name2('Curry');
 console.log(result2); // -> Function
+
+
+const checkType2 = curry2((typeDef, actualType) => {
+  if(R.is(typeDef, actualType)) {
+    return actualType;
+  } else {
+    throw new TypeError('Type mismatch. Expected [' + typeDef + '] but found [' + typeof actualType + ']');
+  }
+});
+
+const result3 = checkType2(String)('Curry');
+// const result4 = checkType2(Number)('3');
+// console.log(result3, result4); // -> Uncaught TypeError
+
+
+/**
+ * 柯里化的替代方案：部分应用、函数绑定
+ */
+
+// 部分应用
+// function partial() {
+//   let fn = this, boundArgs = Array.prototype.slice.call(arguments);
+//   let placeholder = <<partialPlaceholderObj>>;
+//   let bound = function() {
+//     let position = 0, length = args.length;
+//     let args = Array(length);
+//     for(let i = 0; i < length; i++) {
+//       args[i] = boundArgs[i] === placeholder ? arguments[position++] : boundArgs[i];
+//     }
+
+//     while(position < arguments.length) {
+//       args.push(arguments[position++]);
+//     }
+//     return fn.apply(this,args);
+//   }
+
+//   return bound;
+// }
+
+/**
+ * 部分应用
+ * _.partial()
+ * 实际用途：核心语言扩展（在原型上添加方法）
+ */
+String.prototype.first = _.partial(String.prototype.substring, 0, _);
+const result5 = 'Functional Programming'.first(3);
+console.log(result5); // -> Fun
+
+String.prototype.asName = _.partial(String.prototype.replace, /(\w+)\s(\w+)/, '$2, $1');
+const result6 = 'Alonzo Church'.asName();
+console.log(result6); // -> Church, Alonzo
+
+/**
+ * 延迟函数绑定
+ * _.bind()
+ * 实际用途：期望目标函数使用某个特定对象来执行，eg:setTimeout、setTnterval
+ */
+const Scheduler = (function() {
+  const delayedFn = _.bind(setTimeout, undefined, _, _);
+
+  return {
+    delay5: _.partial(delayedFn, _, 5000),
+    delay10: _.partial(delayedFn, _, 10000),
+    delay: _.partial(delayedFn, _, _)
+  };
+ })();
+
+Scheduler.delay5(function() {
+  console.log('executing after 5 seconds!');
+});
+// 5s 后控制台打印 executing after 5 seconds!
