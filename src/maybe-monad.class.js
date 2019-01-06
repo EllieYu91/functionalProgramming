@@ -48,7 +48,7 @@ class Just extends Maybe {
     return Just.of(f(this.value));
   }
 
-  // Monad 提供默认的一元操作，用于从中获取其中
+  // Monad 提供默认的一元操作，用于从中获取其值
   getOrElse() {
     return this._value;
   }
