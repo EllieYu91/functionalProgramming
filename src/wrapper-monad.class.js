@@ -1,3 +1,6 @@
+/**
+ * 这种将值包裹到容器中的模式，是为了构建无副作用的代码，把可能不纯的变化包裹成引用透明的过程
+ */
 class WrapperMonad {
   constructor(value) {
     this._value = value;

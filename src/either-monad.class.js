@@ -43,6 +43,7 @@ class Right extends Either {
     }
 
     // 将给定函数应用于 Left 值，不对 Right 进行任何操作
+    // 无操作，充当占位符，遇到特定 Monad 时可以跳过
     orElse() {
         return this;
     }
@@ -59,7 +60,7 @@ class Right extends Either {
 
     // 如果为 Right 且给定的断言为真，返回包含值得 Right 结构，否则返回空的 Left
     filter(f) {
-        return Either.fromNullable(f(this._value)) ? this._value : null;
+        return Either.fromNullable(f(this._value) ? this._value : null);
     }
 
     toString() {

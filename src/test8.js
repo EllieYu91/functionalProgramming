@@ -1,7 +1,7 @@
 /**
  * 如何函数式地处理异常（null、undefined，无网络。。。）
  * 创建与组合容错函数
- * Functor、Monad(Maybe、Either)
+ * Functor、Monad(Maybe、Either、IO)
  */
 // 根据值快速创建 Wrapper 的帮助函数
 // wrap::A -> Wraper(A)
@@ -151,16 +151,14 @@ console.log(result15);
  */
 // safeFindObject :: Store, string -> Either(Object)
 const safeFindObj4 = R.curry((array, path, value) => {
-  const val = find(array, path, value);
-  // console.log(array, path, value, val);  
-  return val ? Either.right(val) : Either.left(`Object not found with ID: ${value}`);
+  const obj = find(array, path, value);
+  return  obj ? Either.right(obj) : Either.left(`Object not found with ID: ${value}`);
 });
 
 const validLength = (param, str) => str.length === param; // 检查字符串长度
 
 // checkLengthSsn :: String -> Either(String)
-const checkLengthSsn = ssn =>
-  validLength(11, ssn) ? Either.right(ssn) : Either.left('invalid SSN');
+const checkLengthSsn = ssn => validLength(11, ssn) ? Either.right(ssn) : Either.left('invalid SSN');
 
 const cleanInput = R.compose(R.identity, trim);
 
@@ -179,11 +177,16 @@ const showStudent = (ssn) =>
                         // .map(p => _.pick(p, ['ssn', 'firstname', 'lastname'])) // => {ssn: "444-44-4444", firstname: "Stephen", lastname: "Kleene"}
                         .map(R.tap(console.log));  //-> Using R.tap to simulate the side effect (in the book we write to the DOM)
 
-const result16 = showStudent('444-44-4444').getOrElse('Student not found!')
+const result16 = showStudent('444-44-4444').getOrElse('Student not found!');
 console.log(result16); // 444-44-4444,Stephen,Kleene
 
 const result17 = showStudent('xxx-xx-xxxx').getOrElse('Student not found!');
-console.log(result17); // Student not found!
+console.log('result17', result17); // Student not found!
+
+const errorStudent = showStudent('xxx-xx-xxxx').orElse(logger);
+console.log(errorStudent);
+// -> log:  Object not found with ID: xxx-xx-xxxx
+// -> undefined
 
 
 /**
@@ -196,26 +199,53 @@ const chain = R.curry((f, container) => container.chain(f));
 
 const lift = R.curry((f, obj) => Either.fromNullable(f(obj)));
 
-const trace = R.curry((msg, obj) => console.log(msg));
+const trace = R.curry((msg, obj) => console.log(msg, ' : ' , obj));
 
 const showStudent2 = R.compose(
-  R.tap(trace('Student printed to the console')),
+  R.tap(trace('--------Student printed to the console--------')),
   map(R.tap(console.log)),   //-> Using R.tap to simulate the side effect (in the book we write to the DOM)
-
-  R.tap(trace('Student info converted to CSV')),
+  R.tap(trace('--------Student info converted to CSV--------')),
   map(csv),
-
   map(R.props(['ssn', 'firstname', 'lastname'])),
-
-  R.tap(trace('Record fetched successfully!')),
+  R.tap(trace('--------Record fetched successfully!--------')),
   chain(safeFindStudent4),
-
-  R.tap(trace('Input was valid')),
+  R.tap(trace('--------Input was valid--------')),
   chain(checkLengthSsn),
   lift(cleanInput)
 );
 
 const result18 = showStudent2('444-44-4444').getOrElse('Student not found!');
-console.log(result18); // 444-44-4444,Stephen,Kleene
+console.log(result18); 
+// -> --------Input was valid--------  :  Right {_value: "444-44-4444"}
+// -> --------Record fetched successfully!--------  :  Right {_value: Student}
+// -> --------Student info converted to CSV--------  :  Right {_value: "444-44-4444,Stephen,Kleene"}
+// -> 444-44-4444,Stephen,Kleene
+// -> --------Student printed to the console--------  :  Right {_value: "444-44-4444,Stephen,Kleene"}
+// -> 444-44-4444,Stephen,Kleene
 
+/**
+ * IO Monad
+ */
+// 从 HTML 元素读取一个学生姓名，并将单词的第一个字母大写
+const read = function(document, id) {
+  return function () {
+    return document.querySelector(`\#${id}`).innerHTML;
+  } 
+} 
 
+const  write = function(document, id) {
+  return function(val) {
+     return document.querySelector(`\#${id}`).innerHTML = val;
+  }
+} 
+
+const readDom = _.partial(read, document);
+const writeDom = _.partial(write, document);
+
+// changeToStartCase 保持了纯函数，声明式的描述一段 IO 操作，但未执行
+// IO Monad 很明显地将不纯分离了出来
+const changeToStartCase = IO.from(readDom('student-name')).map(_.startCase).map(writeDom('student-name'));
+setTimeout(() => {
+  // 执行运算
+  changeToStartCase.run();
+}, 2000);

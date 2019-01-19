@@ -153,6 +153,7 @@ console.log(result6); // -> Church, Alonzo
  * 延迟函数绑定
  * _.bind()
  * 实际用途：期望目标函数使用某个特定对象来执行，eg:setTimeout、setTnterval
+ * 若传递 undefined，表示该函数将在全局作用域中运行
  */
 const Scheduler = (function() {
   const delayedFn = _.bind(setTimeout, undefined, _, _);
